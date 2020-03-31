@@ -4,10 +4,11 @@ import sys
 
 HOST = '127.0.0.1'
 PORT = '4201'
-CONNECTION = False
+ConnectionEstablished = False
 
 class App(tk.Frame):
     def __init__(self, master):
+
         tk.Frame.__init__(self, master, height=360, width=565)
 
         self.label_ipaddress = tk.Label(self, text="IP Address: ")
@@ -22,8 +23,8 @@ class App(tk.Frame):
         self.nickname = tk.Entry(self, width = 30)
         self.nickname.place(x=350,y=0)
 
-        self.textbox = tk.Text(self, height = 18, width = 70, state="disabled")
-        self.textbox.place(x=0,y=30)
+        self.largeTextbox = tk.Text(self, height = 18, width = 70, state="disabled")
+        self.largeTextbox.place(x=0,y=30)
 
         self.message_edit = tk.Entry(self, width = 65)
         self.message_edit.place(x=5, y=335)
@@ -35,10 +36,16 @@ class App(tk.Frame):
     #Insert text into chatbox
     def send_text(self, user, message):
         if user != '' and message != '':
-            self.textbox.config(state='normal')
-            self.textbox.insert(tk.END, user + ": " + message + "\n")
+            self.largeTextbox.config(state='normal')
+            self.largeTextbox.insert(tk.END, user + ": " + message + "\n")
             self.message_edit.delete(0, 'end')
-            self.textbox.config(state='disabled')
+            self.largeTextbox.config(state='disabled')
+            #main().send_and_recieve(user,message)
+        elif user == "Computer":
+            self.largeTextbox.config(state='normal')
+            self.largeTextbox.insert(tk.END, user + ": " + message + "\n")
+            self.message_edit.delete(0, 'end')
+            self.largeTextbox.config(state='disabled')
         else:
             self.errorPopup()
 
@@ -52,41 +59,87 @@ class App(tk.Frame):
         self.btn_popup.pack()
         popup.mainloop()
 
-
 def main():
     root = tk.Tk()
     App(root).pack(expand=True, fill='both')
 
     HOST = '127.0.0.1'
     PORT = 4201
-    CONNECTION = False
 
-    sock = socket.socket()
-    sock.bind((HOST,PORT))
+    global s
+    global conn
+    s = socket.socket()
 
-    def try_to_connect(connection_status):
-        sock.connect((HOST,PORT))
-        sock.close
-
-        CONNECTION = True
-        print(CONNECTION)
-
-        if CONNECTION == True:
-            print("We are connected together!")
-
+    #Displays the welcome dialog box
+    def welcome():
         popup = tk.Tk()
-        popup.wm_title("Connected!")
-        label = tk.Label(popup, text="You are successfully connected!")
+        popup.resizable(height = 1000)
+        popup.wm_title("Welcome!")
+        label = tk.Label(popup, text="Welcome to P2P chatroom!")
         label.pack()
-        btn_popup = tk.Button(popup,text="Okay", command=popup.destroy)
-        btn_popup.pack()
+        btn_server = tk.Button(popup,text="Create Server", command=lambda: [popup.destroy(),establish_connection()])
+        btn_connect = tk.Button(popup, text="Connect to Server", command=lambda: [popup.destroy(),connect_to_server()])
+        btn_exit = tk.Button(popup,text="Exit", command=root.quit)
+        btn_server.pack()
+        btn_connect.pack()
+        btn_exit.pack()
         popup.mainloop()
+
+    #Establishes a connection that listens for another person to join
+    def establish_connection():
+        global ConnectionEstablished
+        global s
+        global conn
+        s.bind((HOST,PORT))
+        print("Server established on Host: "+ HOST + ", on Port: " + str(PORT))
+
+        s.listen()
+        conn, address = s.accept()
+        with conn:
+            ConnectionEstablished = True
+            print("Connected")
+            conn.sendall("What's up?".encode())
+            #send_message_out("Computer", "Welcome to the server!")
+
+    #Attenpts to connect to another active user
+    def connect_to_server():
+        global ConnectionEstablished
+        try:
+            s.settimeout(5)
+            s.connect((HOST,PORT))
+        except:
+            print("Failed to connect")
+            root.quit
+        ConnectionEstablished = True
+        print("Connected")
+        send_message_out("Computer", "Welcome to the server!")
+
+    #Tries to send a message to the other user
+    def send_message_out(user, message):
+        global s
+        fullMessage = user + ": " + message + '\n'
+        s.send(fullMessage.encode())
+        print("we got to try to send the message")
+
+    #Listens for incomming messages
+    def listen_for_message():
+        while True:
+            data = conn.recv(1024)
+            print(data.decode())
 
     #Add a menu bar
     menubar = tk.Menu(root)
-    menubar.add_command(label="Connect",command=lambda : try_to_connect(CONNECTION))
+    menubar.add_command(label="Connect")
     menubar.add_command(label="Quit", command=root.quit)
     root.config(menu=menubar) 
+
+    welcome()
+
+    if ConnectionEstablished == True:
+        print("Message sent")
+        listen_for_message()
+    else:
+        print("nope....")
 
     root.mainloop()
 
