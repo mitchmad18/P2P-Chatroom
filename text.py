@@ -10,18 +10,13 @@ class App(tk.Frame):
     def __init__(self, master):
 
         tk.Frame.__init__(self, master, height=360, width=565)
-
-        self.label_ipaddress = tk.Label(self, text="IP Address: ")
-        self.label_ipaddress.place(x=0,y=0)
-
-        self.ip_address = tk.Entry(self, width = 30)
-        self.ip_address.place(x=80,y=0)
+        master.title("P2P Chatroom")
 
         self.label_nickname = tk.Label(self, text="Nickname: ")
-        self.label_nickname.place(x=275, y=0)
+        self.label_nickname.place(x=0, y=0)
 
         self.nickname = tk.Entry(self, width = 30)
-        self.nickname.place(x=350,y=0)
+        self.nickname.place(x=80,y=0)
 
         self.largeTextbox = tk.Text(self, height = 18, width = 70, state="disabled")
         self.largeTextbox.place(x=0,y=30)
