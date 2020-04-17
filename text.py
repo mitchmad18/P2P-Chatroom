@@ -3,7 +3,7 @@ import socket
 import sys
 
 HOST = '127.0.0.1'
-PORT = '4201'
+PORT = 4201
 ConnectionEstablished = False
 
 class App(tk.Frame):
@@ -77,8 +77,8 @@ def main():
         popup.wm_title("Welcome!")
         label = tk.Label(popup, text="Welcome to P2P chatroom!")
         label.pack()
-        btn_server = tk.Button(popup,text="Create Server", command=lambda: [popup.destroy(),establish_connection()])
-        btn_connect = tk.Button(popup, text="Connect to Server", command=lambda: [popup.destroy(),connect_to_server()])
+        btn_server = tk.Button(popup,text="Create Server", command=lambda: [popup.destroy(),create_server_popup()])
+        btn_connect = tk.Button(popup, text="Connect to Server", command=lambda: [popup.destroy(),connect_server_popup()])
         btn_exit = tk.Button(popup,text="Exit", command=root.quit)
         btn_server.pack()
         btn_connect.pack()
@@ -98,8 +98,35 @@ def main():
         with conn:
             ConnectionEstablished = True
             print("Connected")
-            conn.sendall("What's up?".encode())
-            #send_message_out("Computer", "Welcome to the server!")
+            conn.sendall("Welcome to the chatroom!".encode())
+
+    def create_server_popup():
+        popup = tk.Tk()
+        popup.resizable()
+        popup.wm_title("!")
+        label = tk.Label(popup, text="Please enter your Host and Port numbers:")
+        label.pack()
+        hostNum = tk.Entry(popup, width = 30)
+        hostNum.pack()
+        portNum = tk.Entry(popup, width = 30)
+        portNum.pack()
+        btn_start = tk.Button(popup,text="Start", command=lambda: [popup.destroy(),establish_connection()])
+        btn_start.pack()
+        popup.mainloop()
+
+    def connect_server_popup():
+        popup = tk.Tk()
+        popup.resizable()
+        popup.wm_title("!")
+        label = tk.Label(popup, text="Please enter your Host and Port numbers:")
+        label.pack()
+        hostNum = tk.Entry(popup, width = 30)
+        hostNum.pack()
+        portNum = tk.Entry(popup, width = 30)
+        portNum.pack()
+        btn_start = tk.Button(popup,text="Start", command=lambda: [popup.destroy(),connect_to_server()])
+        btn_start.pack()
+        popup.mainloop()
 
     #Attenpts to connect to another active user
     def connect_to_server():
@@ -112,14 +139,13 @@ def main():
             root.quit
         ConnectionEstablished = True
         print("Connected")
-        send_message_out("Computer", "Welcome to the server!")
+        send_message_out("Computer", "Welcome to the chatroom!")
 
     #Tries to send a message to the other user
     def send_message_out(user, message):
         global s
         fullMessage = user + ": " + message + '\n'
         s.send(fullMessage.encode())
-        print("we got to try to send the message")
 
     #Listens for incomming messages
     def listen_for_message():
